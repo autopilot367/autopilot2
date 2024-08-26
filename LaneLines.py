@@ -22,14 +22,19 @@ class LaneLines:
             right_fit (np.array): Coefficients of a polynomial that fit right lane line
             binary (np.array): binary image
         """
-        self.left_fit = [0, 0, 0]
-        self.right_fit = [0, 0, 0]
+        self.left_fit = []
+        self.right_fit = []
         self.binary = None
         self.nonzero = []
         self.nonzerox = []
         self.nonzeroy = []
         self.clear_visibility = True
         self.dir = []
+        
+        self.radius_of_curvature = None
+        self.road_inf = None
+        self.curvature = None
+        self.deviation = None
 
         self.nwindows = 12
         self.margin = 20
@@ -81,7 +86,7 @@ class LaneLines:
         # print(condx.shape)
         # print(condy.shape)
         cv2.rectangle(img, topleft, bottomright, (255, 0, 0), 2)
-        cv2.imshow("sliding windows", img)
+        #cv2.imshow("sliding windows", img)
         return self.nonzerox[condx & condy], self.nonzeroy[condx & condy]
 
     def find_lane_pixels(self, img):
@@ -102,9 +107,6 @@ class LaneLines:
         out_img = np.dstack((img, img, img))
 
         histogram = hist(img)
-        if np.sum(histogram) == 0:
-            print("없음")
-            return None, None, None, None, out_img
         midpoint = histogram.shape[0]//2
         leftx_base = np.argmax(histogram[:midpoint])
         rightx_base = np.argmax(histogram[midpoint:]) + midpoint
@@ -146,17 +148,11 @@ class LaneLines:
                 """
 
         leftx, lefty, rightx, righty, out_img = self.find_lane_pixels(img)
-        if leftx is None:
-            return out_img
-        # print(f"leftx: {leftx}")
-        # print(f"lefty: {lefty}")
-        # print(f"rightx: {rightx}")
-        # print(f"righty: {righty}")
-        # print(f"out_img: {out_img}")
 
-        if len(lefty) > 1000:
+
+        if len(lefty) > 1500:
             self.left_fit = np.polyfit(lefty, leftx, 2)
-        if len(righty) > 1000:
+        if len(righty) > 1500:
             self.right_fit = np.polyfit(righty, rightx, 2)
 
         # Generate x and y values for plotting
@@ -184,7 +180,60 @@ class LaneLines:
             y = int(y)
             cv2.circle(out_img2, (l, y), 5, (255, 0, 255), -1)
             cv2.circle(out_img2, (r, y), 5, (255, 0, 255), -1)
-            cv2.line(out_img2, (l, y), (r, y), (0, 255, 0))
+            #cv2.line(out_img2, (l, y), (r, y), (0, 255, 0))
+    
 
-        return out_img2
 
+        """Road info"""
+        #curvature
+        ploty = np.linspace(0, self.img.shape[0] - 1, self.img.shape[0])
+        self.ym_per_pix = 30 / self.img.shape[0]  # meters per pixel in y dimension
+        self.xm_per_pix = 3.7 / self.img.shape[1] # 30 & 3.7 => arbitrary constant
+
+        y_eval = np.max(ploty)
+
+        left_curverad = ((1 + (2*self.left_fit[0]*y_eval*self.ym_per_pix + self.left_fit[1])**2)**1.5) / np.absolute(2*self.left_fit[0])
+        right_curverad = ((1 + (2*self.right_fit[0]*y_eval*self.ym_per_pix + self.right_fit[1])**2)**1.5) / np.absolute(2*self.right_fit[0])
+        
+        radius_of_curvature = (left_curverad + right_curverad) / 2
+        curvature = {
+            'left_curvature': left_curverad,'right_curvature': right_curverad}
+        # print(f"Curvature: {curvature}")
+        
+
+        left_startx, right_startx = left_fitx[len(left_fitx) - 1], right_fitx[len(right_fitx) - 1] # bottom component
+        left_endx, right_endx = left_fitx[0], right_fitx[0] # top components
+
+        direction = ((left_endx - left_startx) + (right_endx - right_startx)) / 2
+        print("direction :", direction)
+
+        if radius_of_curvature > 2000 and abs(direction) < 100 :
+            road_info = 'No Curve'
+            curvature = -1
+        elif radius_of_curvature <= 2000 and direction < -50 :
+            road_info = 'Left Curve'
+        elif radius_of_curvature <= 2000 and direction > 50 :
+            road_info = 'Right Curve'
+        else :
+            road_info = 'Undetectable'
+
+        #deviation
+        center_lane = (right_startx + left_startx) / 2
+        lane_width = right_startx - left_startx
+
+        center_car = 720 / 2 + 12
+        pix_deviation = round((center_lane - center_car) / (lane_width/2), 2)
+        deviation = round((3.5)*pix_deviation / lane_width, 2)
+        steering_ratio = deviation * 20
+
+        if center_lane > center_car :
+            deviation = f'Left {str(abs(deviation))}m'
+        elif center_lane < center_car :
+            deviation = f'Right {str(abs(deviation))}m'
+        else :
+            deviation = 'Center'
+
+        road_info = [radius_of_curvature, road_info, deviation, steering_ratio]
+        print(road_info)
+        return out_img2, road_info
+        
