@@ -18,6 +18,19 @@ class Thresholding:
         """ Init Thresholding """
         pass
 
+    # def forward(self, img):
+    #     hls = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
+    #     lower_white = np.array([0, 200, 100])
+    #     upper_white = np.array([255, 255, 255])
+    #     mask_white = cv2.inRange(hls, lower_white, upper_white)
+    #
+    #     lower_blue = np.array([90, 120, 70])
+    #     upper_blue = np.array([130, 255, 255])
+    #     mask_yellow = cv2.inRange(hls, lower_blue, upper_blue)
+    #
+    #     mask = cv2.bitwise_or(mask_white, mask_yellow)
+    #     return mask
+
     def forward(self, img):
         """ Take an image and extract all relevant pixels.
 
@@ -29,10 +42,11 @@ class Thresholding:
         """
         img = cv2.GaussianBlur(img, (5, 5), 1)
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-
+        # h, s, v = cv2.split(hsv)
+        # v_gaussian = cv2.adaptiveThreshold(v, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 1271, 2)
         lower = np.array([0, 0, 110])
         upper = np.array([255, 255, 250])
-        # mask = binary image => true(white 255), false(black 0)
+        # mask = v_gaussian
         mask = cv2.inRange(hsv, lower, upper)
 
         # right_lane = threshold_rel(v, 0.5, 1.0)

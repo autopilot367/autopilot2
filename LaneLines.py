@@ -22,8 +22,8 @@ class LaneLines:
             right_fit (np.array): Coefficients of a polynomial that fit right lane line
             binary (np.array): binary image
         """
-        self.left_fit = []
-        self.right_fit = []
+        self.left_fit = [0, 0, 0]
+        self.right_fit = [0, 0, 0]
         self.binary = None
         self.nonzero = []
         self.nonzerox = []
@@ -102,6 +102,9 @@ class LaneLines:
         out_img = np.dstack((img, img, img))
 
         histogram = hist(img)
+        if np.sum(histogram) == 0:
+            print("없음")
+            return None, None, None, None, out_img
         midpoint = histogram.shape[0]//2
         leftx_base = np.argmax(histogram[:midpoint])
         rightx_base = np.argmax(histogram[midpoint:]) + midpoint
@@ -143,15 +146,17 @@ class LaneLines:
                 """
 
         leftx, lefty, rightx, righty, out_img = self.find_lane_pixels(img)
+        if leftx is None:
+            return out_img
         # print(f"leftx: {leftx}")
         # print(f"lefty: {lefty}")
         # print(f"rightx: {rightx}")
         # print(f"righty: {righty}")
         # print(f"out_img: {out_img}")
 
-        if len(lefty) > 1500:
+        if len(lefty) > 1000:
             self.left_fit = np.polyfit(lefty, leftx, 2)
-        if len(righty) > 1500:
+        if len(righty) > 1000:
             self.right_fit = np.polyfit(righty, rightx, 2)
 
         # Generate x and y values for plotting
