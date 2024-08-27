@@ -28,7 +28,7 @@ class FindLaneLines :
     def forward(self, img):
         out_img = np.copy(img)
         img = self.transform.forward(img)
-        cv2.imshow("self.transform.forward(img)", self.transform.forward(img))
+        # cv2.imshow("self.transform.forward(img)", self.transform.forward(img))
         # print(f"self.transform.forward(img): {self.transform.forward(img)}")
         img = self.thresholding.forward(img)
         # print(f"self.thresholding.forward(img):{self.thresholding.forward(img).shape}")
@@ -74,19 +74,18 @@ class FindLaneLines :
             # YOLO 객체 검출
             boxes, confidences, class_ids = yolo.object_YOLO(roi_img)
 
-            if boxes:
+            if boxes:        
+                largest_box = None
                 largest_box = yolo.get_largest_object(boxes, confidences, class_ids)
 
-                yolo_img, distance = yolo.draw_largest_box(undistort_frame, largest_box)
-                distance = str(round(distance,1))
+                if largest_box:
+                    yolo_img, distance_int = yolo.draw_largest_box(undistort_frame, largest_box)
+                    distance = str(round(distance_int, 2))
                 
                 result = cv2.addWeighted(lane_img, 0.5, yolo_img, 0.5, 0)
             else:
                 distance = "No vehicles"
                 result = lane_img
-
-            # 가장 큰 박스 검출
-            largest_box = yolo.get_largest_object(boxes, confidences, class_ids)
 
             # 바운딩 박스 그리기
             #yolo_img = yolo.draw_bounding_boxes(frame, boxes, confidences, class_ids)
@@ -98,7 +97,13 @@ class FindLaneLines :
             cv2.putText(result, f"road_info: {road_info[1]}", (10, 80), cv2.FONT_HERSHEY_COMPLEX, 0.45, (100, 100, 200), 1)
             cv2.putText(result, f"deviation: {road_info[2]}", (10, 100), cv2.FONT_HERSHEY_COMPLEX, 0.45, (100, 100, 200), 1)
 
+            #핸들 회전 시각화
             result = self.notice.combine(result, road_info[3])
+
+            #차간 거리 경고
+            if distance_int:
+                if distance_int < 50 : #임의로 설정한 값, 탑승 중인 차량의 속력 추가 필요
+                    result = self.notice.red_sign(result)
 
             cv2.imshow('result', result)
 
@@ -106,7 +111,7 @@ class FindLaneLines :
                 break
 
 def main():
-    img_path = "input.mp4"
+    img_path = "sample2.mp4"
 
     findLaneLines = FindLaneLines()
     findLaneLines.process_image(img_path)
