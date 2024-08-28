@@ -7,7 +7,7 @@ class Preprocessing:
         pass
 
     # 영상에서 프레임을 추출하여 사용
-    def undistort_const(frame):
+    def undistort_const(self, frame):
         
         mtx = np.array([[2000, 0, 320],
                         [0, 2000, 180],

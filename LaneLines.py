@@ -63,7 +63,8 @@ class LaneLines:
             Image (np.array): An RGB image containing lane lines pixels and other details
         """
         self.extract_features(img)
-        return self.fit_poly(img)
+        img, road_info = self.fit_poly(img)
+        return img, road_info
 
     def pixels_in_window(self, center, margin, height, img):
         """ Return all pixel that in a specific window
@@ -87,7 +88,7 @@ class LaneLines:
         # print(condx.shape)
         # print(condy.shape)
         cv2.rectangle(img, topleft, bottomright, (255, 0, 0), 2)
-        #cv2.imshow("sliding windows", img)
+        cv2.imshow("sliding windows", img)
         return self.nonzerox[condx & condy], self.nonzeroy[condx & condy]
 
     def find_lane_pixels(self, img):
@@ -108,6 +109,9 @@ class LaneLines:
         out_img = np.dstack((img, img, img))
 
         histogram = hist(img)
+        if np.sum(histogram) == 0:
+            print("없음")
+            return None, None, None, None, out_img
         midpoint = histogram.shape[0]//2
         leftx_base = np.argmax(histogram[:midpoint])
         rightx_base = np.argmax(histogram[midpoint:]) + midpoint
@@ -149,11 +153,12 @@ class LaneLines:
                 """
 
         leftx, lefty, rightx, righty, out_img = self.find_lane_pixels(img)
+        if leftx is None:
+            return out_img, None
 
-
-        if len(lefty) > 1500:
+        if len(lefty) > 1000:
             self.left_fit = np.polyfit(lefty, leftx, 2)
-        if len(righty) > 1500:
+        if len(righty) > 1000:
             self.right_fit = np.polyfit(righty, rightx, 2)
 
         # Generate x and y values for plotting
@@ -235,7 +240,7 @@ class LaneLines:
 
         #steering
         
-        if radius_of_curvature > 20000000:
+        if radius_of_curvature > 2000:
             steering_angle = 0
         else:
             wheelbase = 2700 #mm
