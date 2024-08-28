@@ -57,7 +57,7 @@ def CarBehaviour(img1,img2):
     #     status = True
     # else : status = False
 
-    return difference[1]
+    return difference[0], non1, non2
 
 def count_pixels(frame):
     
