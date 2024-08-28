@@ -116,7 +116,7 @@ def get_largest_box(boxes, confidences):
 
 
 if __name__ == "__main__":
-    cap = cv2.VideoCapture('road_1.mp4')
+    cap = cv2.VideoCapture('road_10q.mp4')
     yolo = YOLO('yolov3.weights', 'yolov3.cfg', 'coco.names')
 
     if not cap.isOpened():
