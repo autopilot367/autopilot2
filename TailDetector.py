@@ -1,7 +1,7 @@
 from matplotlib import pyplot as plt
 import numpy as np
 import cv2
-from FramesStorage import *
+
 
 # In mls
 BRAKE_ANALYSIS_TIME = 150
@@ -11,14 +11,13 @@ BRAKE_ANALYSIS_TIME_2 = 500
 
 STATUS_CHANGE_THRESHOLD = 15
 
-# 감지된 영역에 라벨링을 위해 RGB값생성
 def generate_colors(num):
 
     return [(208, 86, 93), (197, 162, 4), (233, 43, 131), (203, 208, 223), (18, 121, 41), (64, 85, 147),
             (206, 187, 204), (36, 72, 148), (158, 11, 209), (36, 1, 154), (96, 53, 119), (230, 60, 218),
             (206, 187, 204), (36, 72, 148), (158, 11, 209), (36, 1, 154), (96, 53, 119), (230, 60, 218)]
 
-# 위치와 대칭성을 기준으로 쌍을 식별
+
 def SymmetryTest(img, n_labels, labels, stats, centroids, test_str):
     source_img = img.copy()
     cv2.cvtColor(source_img, cv2.COLOR_GRAY2RGB)
@@ -59,7 +58,7 @@ def SymmetryTest(img, n_labels, labels, stats, centroids, test_str):
 
     return light_pairs
 
-# img를 YCrCb로 변환, adaptive thresholding 사용, 브레이크등 영역 검출
+
 def GetThresholdImg(img):
     car_img_Y = img[:, :, 0]
     car_img_Cr = img[:, :, 1]
@@ -72,7 +71,7 @@ def GetThresholdImg(img):
 
     return th_Cr
 
-# 침식 및 팽창 적용
+
 def MorphologicalOperations(img):
     kernel = np.ones((2, 2), np.uint8)
     erosion = cv2.erode(img, kernel, iterations=1)
@@ -82,7 +81,7 @@ def MorphologicalOperations(img):
 
     return dilation
 
-# 가장 적합한 브레이크등 쌍 식별 및 반환
+
 def DrawBestPair(img, pair, labels):
     if len(pair) == 0:
         #cv2.imshow("Output", img)
@@ -106,23 +105,19 @@ def DrawBestPair(img, pair, labels):
 
 def TailDetector(img):
     car_img_rgb = img.copy()
-    # Y :밝기, 색차 : CrCb 로 분리
+
     img_yCrCb = cv2.cvtColor(img, cv2.COLOR_BGR2YCrCb)
-    # 적응형 임계값 처리, 이진화 영상 추출
+
     threshold_img = GetThresholdImg(img_yCrCb)
-    # 침식 및 팽창
+
     morpho_img = MorphologicalOperations(threshold_img)
-    
-    # 인접 픽셀을 상하좌우(4방향)으로만 연결
-    # n_labels : 감지된 연결되어있는 브레이크 등 수
-    # labels : 라벨을 나타내는 배열
-    # stats : 바운딩 박스, 면적등의 정보 포함
-    # centroids : 중심점 좌표
+
+
     connectivity = 4
     n_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(morpho_img, connectivity, cv2.CV_32S)
-    # 브레이크등 식별, 식별된 브레이크 등을 list로 저장
+
     light_pairs = SymmetryTest(morpho_img, n_labels, labels, stats, centroids, str)
-    # 가장 큰 면적의 브레이크등 선택
+
     pair_with_max_surface = []
     max_surface_value = 0
     surface_mean = 0
@@ -142,9 +137,9 @@ def TailDetector(img):
             pair_with_max_surface = pair
             max_surface_value = surface_sum
             surface_mean = np.mean(surf1) + np.mean(surf2)
-    # 선택된 브레이크 등의 바운딩 박스를 계산하여 반환
+
     bboxes = DrawBestPair(img, pair_with_max_surface, labels)
-    # 브레이크등 영역의 밝기 계산
+
     total_mean_Cr = 0
     total_mean_Y = 0
 
@@ -163,4 +158,3 @@ def TailDetector(img):
 
 
     return np.array(bboxes), total_mean_Y
-
