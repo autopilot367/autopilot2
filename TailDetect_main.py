@@ -1,6 +1,5 @@
 import cv2
 import time
-from BrakeDetecting import roi_for_tail_detect
 import numpy as np
 from Thresholding import *
 from PerspectiveTransformation import *
@@ -9,7 +8,52 @@ from yolo_test import *
 from ADAS_main import FindLaneLines
 import CarBehaviour as cb
 
+class KalmanBrakeDetector:
+    def __init__(self):
+        # Kalman Filter 초기화
+        self.kalman = cv2.KalmanFilter(4, 2)
+        self.kalman.measurementMatrix = np.array([[1, 0, 0, 0], 
+                                                  [0, 1, 0, 0]], np.float32)
+        self.kalman.transitionMatrix = np.array([[1, 0, 1, 0], 
+                                                 [0, 1, 0, 1], 
+                                                 [0, 0, 1, 0], 
+                                                 [0, 0, 0, 1]], np.float32)
+        self.kalman.processNoiseCov = np.array([[1, 0, 0, 0],
+                                                [0, 1, 0, 0],
+                                                [0, 0, 1, 0],
+                                                [0, 0, 0, 1]], np.float32) * 0.03
+        self.brake_status = 0
 
+    def update(self, brake_light_detected):
+        # Kalman Filter에 현재 관측값을 전달
+        measurement = np.array([[np.float32(brake_light_detected)], 
+                                [np.float32(brake_light_detected)]], np.float32)
+        self.kalman.correct(measurement)
+        
+        # 필터를 통해 예측된 상태 업데이트
+        prediction = self.kalman.predict()
+        predicted_brake_status = prediction[0][0]
+
+        # 예측된 상태를 기반으로 braking 여부 결정
+        self.brake_status = 1 if predicted_brake_status > 0.5 else 0
+
+        return self.brake_status
+
+def roi_for_tail_detect(frame):
+    
+    yolo = YOLO('yolov3.weights', 'yolov3.cfg', 'coco.names')
+    roi_img = yolo.normalize_ROI(frame)
+    # YOLO 객체 검출
+    boxes, confidences, class_ids = yolo.object_YOLO(roi_img)
+    boxes, confidences = find_only_front(boxes, frame, confidences)
+    boxes, confidences = get_largest_box(boxes, confidences)
+    x, y, w, h = boxes[0]
+    roi_frame = frame[y+int(0.3*h):y+int(0.8*h), x+int(0.08*w):x+int(0.92*w)]
+    
+    return roi_frame
+
+# TailDetect_main에서 KalmanBrakeDetector를 사용하는 코드
+kalman_brake_detector = KalmanBrakeDetector()
 # 동영상 파일 열기
 cap = cv2.VideoCapture('road_10.mp4')
 
@@ -48,14 +92,15 @@ while ret:
         
         # 이전 프레임과 비교하여 브레이크등 상태 변화 감지
         if prev_frame is not None:
-            difference = cb.CarBehaviour(prev_frame, current_frame)
-            print(difference / cb.count_pixels(prev_frame))
-            if difference / cb.count_pixels(prev_frame) >= 0.001 : status = True
+            difference, non1, non2 = cb.CarBehaviour(prev_frame, current_frame)
+            print('difference :' , difference / cb.count_pixels(prev_frame), 'one only :' , non1 / cb.count_pixels(prev_frame))
+            if (difference / cb.count_pixels(prev_frame) <= -0.001) or  (non1 / cb.count_pixels(prev_frame) >= 0.01) : status = True
             else : status = False
-            if status == True :
-                cv2.putText(frame, "Brake Light ON", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-            elif status == False :
-                cv2.putText(frame, "Brake Light OFF", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+        braking = kalman_brake_detector.update(status)
+
+        if braking == True :
+            cv2.putText(frame, "Braking", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
         # 분석 타이머 갱신 및 이전 프레임 업데이트
         last_brake_analysis_time = current_time
