@@ -23,8 +23,8 @@ class LaneLines:
             right_fit (np.array): Coefficients of a polynomial that fit right lane line
             binary (np.array): binary image
         """
-        self.left_fit = []
-        self.right_fit = []
+        self.left_fit = [0, 0, 0]
+        self.right_fit = [0, 0, 0]
         self.binary = None
         self.nonzero = []
         self.nonzerox = []
@@ -155,7 +155,6 @@ class LaneLines:
         leftx, lefty, rightx, righty, out_img = self.find_lane_pixels(img)
         if leftx is None:
             return out_img, None
-
         if len(lefty) > 1000:
             self.left_fit = np.polyfit(lefty, leftx, 2)
         if len(righty) > 1000:
@@ -198,8 +197,12 @@ class LaneLines:
 
         y_eval = np.max(ploty)
 
-        left_curverad = ((1 + (2*self.left_fit[0]*y_eval*self.ym_per_pix + self.left_fit[1])**2)**1.5) / np.absolute(2*self.left_fit[0])
-        right_curverad = ((1 + (2*self.right_fit[0]*y_eval*self.ym_per_pix + self.right_fit[1])**2)**1.5) / np.absolute(2*self.right_fit[0])
+        if self.left_fit[0] == 0:
+            left_curverad = 0
+        else: left_curverad = ((1 + (2*self.left_fit[0]*y_eval*self.ym_per_pix + self.left_fit[1])**2)**1.5) / np.absolute(2*self.left_fit[0])
+        if self.right_fit[0] == 0:
+            right_curverad = 0
+        else: right_curverad = ((1 + (2*self.right_fit[0]*y_eval*self.ym_per_pix + self.right_fit[1])**2)**1.5) / np.absolute(2*self.right_fit[0])
         
         radius_of_curvature = (left_curverad + right_curverad) / 2
         curvature = {

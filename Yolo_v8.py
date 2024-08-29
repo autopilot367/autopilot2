@@ -82,9 +82,9 @@ class YOLOv8CarDetector:
             # 거리를 프레임에 표시
             cv2.putText(frame, distance_text, (sx, sy - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
-            return frame, distance
+            return frame, distance, largest_vehicle_box
 
-        return frame, None
+        return frame, None, None
 
 
 # if __name__ == "__main__":

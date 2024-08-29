@@ -15,6 +15,7 @@ from LaneLines import *
 from Yolo_v8 import *
 from Preprocessing import *
 from Notice import *
+from BrakeDetector import *
 import time
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
@@ -37,6 +38,7 @@ class FindLaneLines :
         self.calibration = Preprocessing()
         self.yolo = YOLOv8CarDetector('yolov8n.pt')
         self.notice = Notice()
+        self.tail = KalmanBrakeDetector()
 
     def forward(self, img):
         out_img = np.copy(img)
@@ -72,19 +74,26 @@ class FindLaneLines :
             ret, frame = cap.read()
             frame = cv2.resize(frame, (640, 360), interpolation=cv2.INTER_LINEAR)
             # 프레임 시작 시간 기록
-            start_time = time.perf_counter_ns()
-
-            frame = self.calibration.undistort_const(frame)
             if not ret:
                 print("--------Video Ended---------")
                 break
 
+            start_time = time.perf_counter_ns()
+
+            frame = self.calibration.undistort_const(frame)
+
+
             lane_img = np.copy(frame)
             time1 = time.perf_counter_ns()
             """ -------Yolo process------- """
-            yolo_img, distance = self.yolo.detect_and_calculate_distance(frame)
+            yolo_img, distance, front_car_boxes = self.yolo.detect_and_calculate_distance(frame)
             """ --------------------------- """
             time2 = time.perf_counter_ns()
+            if front_car_boxes is not None:
+                frame = self.tail.forward(frame, front_car_boxes)
+                # cv2.imshow("tail_img", tail_img)
+
+
             lane_img, road_info = self.forward(lane_img)
             time3 = time.perf_counter_ns()
             result = cv2.addWeighted(lane_img, 0.5, yolo_img, 0.5, 0)
@@ -113,7 +122,7 @@ class FindLaneLines :
                 break
 
 def main():
-    img_path = "sample1.avi"
+    img_path = "road_10.mp4"
 
     findLaneLines = FindLaneLines()
     findLaneLines.process_image(img_path)
