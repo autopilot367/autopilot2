@@ -84,11 +84,11 @@ class FindLaneLines :
 
         while cap.isOpened():
             ret, frame = cap.read()
-            frame = cv2.resize(frame, (640, 360), interpolation=cv2.INTER_LINEAR)
             # 프레임 시작 시간 기록
             if not ret:
                 print("--------Video Ended---------")
                 break
+            frame = cv2.resize(frame, (640, 360), interpolation=cv2.INTER_LINEAR)
             start_time_1 = time.time()
             start_time = time.perf_counter_ns()
 
@@ -133,7 +133,7 @@ class FindLaneLines :
                 result = self.notice.combine(result, road_info[3])
             # 차간 거리 경고
             if distance:
-                if distance < 25:  # 임의로 설정한 값, 탑승 중인 차량의 속력 추가 필요
+                if distance < 10:  # 임의로 설정한 값, 탑승 중인 차량의 속력 추가 필요
                     result = self.notice.red_sign(result)
 
             cv2.putText(result, f"Frame time: {frame_time_ms:.2f} ms", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
@@ -145,7 +145,7 @@ class FindLaneLines :
                 break
 
 def main():
-    img_path = "road_10.mp4"
+    img_path = "test_1.mp4"
 
     findLaneLines = FindLaneLines()
     findLaneLines.process_image(img_path)

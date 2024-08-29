@@ -6,18 +6,23 @@ import numpy as np
 def CarBehaviour(img1,img2):
     # taildetector로 후미등 위치 탐지
     beh = ''
-    bbox_img1 = tl.TailDetector(img1)
-    bbox_img2 = tl.TailDetector(img2)
+    bbox_img1, _ = tl.TailDetector(img1)
+    bbox_img2, _ = tl.TailDetector(img2)
+    print(f"bbox_img1: {bbox_img1}")
+    print(f"bbox_img2: {bbox_img2}")
 
-    x, y, w, h =  bbox_img1[0][0][0], bbox_img1[0][0][1], bbox_img1[0][0][2],bbox_img1[0][0][3]
+    if len(bbox_img1) == 0 or len(bbox_img2) == 0:
+        print("bbox error... skipping")
+        return None, None, None
+    x, y, w, h =  bbox_img1[0][0], bbox_img1[0][1], bbox_img1[0][2],bbox_img1[0][3]
     right_light_img1 = img1[y:y + h, x:x + w]
-    x, y, w, h = bbox_img1[0][1][0], bbox_img1[0][1][1], bbox_img1[0][1][2], bbox_img1[0][1][3]
+    x, y, w, h = bbox_img1[1][0], bbox_img1[1][1], bbox_img1[1][2], bbox_img1[1][3]
     left_light_img1 = img1[y:y + h, x:x + w]
 
 
-    x, y, w, h = bbox_img2[0][0][0], bbox_img2[0][0][1], bbox_img2[0][0][2], bbox_img2[0][0][3]
+    x, y, w, h = bbox_img2[0][0], bbox_img2[0][1], bbox_img2[0][2], bbox_img2[0][3]
     right_light_img2 = img2[y:y + h, x:x + w]
-    x, y, w, h = bbox_img2[0][1][0], bbox_img2[0][1][1], bbox_img2[0][1][2], bbox_img2[0][1][3]
+    x, y, w, h = bbox_img2[1][0], bbox_img2[1][1], bbox_img2[1][2], bbox_img2[1][3]
     left_light_img2 = img2[y:y + h, x:x + w]
 
     status = False
