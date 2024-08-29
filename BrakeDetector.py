@@ -59,7 +59,7 @@ class KalmanBrakeDetector:
         if self.prev_frame is not None:
             difference, non1, non2 = cb.CarBehaviour(self.prev_frame, self.current_frame)
             print('difference :' , difference / cb.count_pixels(self.prev_frame), 'one only :' , non1 / cb.count_pixels(self.prev_frame))
-            if (difference / cb.count_pixels(self.prev_frame) <= -0.001) or  (non1 / cb.count_pixels(self.prev_frame) >= 0.01) : status = True
+            if (difference / cb.count_pixels(self.prev_frame) <= -0.001) or  (non1 / cb.count_pixels(self.prev_frame) >= 0.005) : status = True
             else : status = False
 
         self.prev_frame = roi_frame

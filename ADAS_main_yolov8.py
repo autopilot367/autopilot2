@@ -21,6 +21,10 @@ import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 
+# 전체 루프 FPS 설정 (비디오의 FPS와 동일하게 설정)
+
+
+
 def check_time(start_time, end_time):
     """
         time = time.perf_counter_ns()
@@ -39,6 +43,8 @@ class FindLaneLines :
         self.yolo = YOLOv8CarDetector('yolov8n.pt')
         self.notice = Notice()
         self.tail = KalmanBrakeDetector()
+
+
 
     def forward(self, img):
         out_img = np.copy(img)
@@ -62,6 +68,11 @@ class FindLaneLines :
 
     def process_image(self, img_path):
         cap = cv2.VideoCapture(img_path)
+        video_fps = cap.get(cv2.CAP_PROP_FPS)
+        video_frame_interval = 1 / video_fps
+
+        # 브레이크등 분석을 위한 FPS 설정 (예: 0.2초 간격으로 분석)
+        brake_analysis_interval = 0.2  # 초 단위로 간격 설정
         # cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
 
@@ -69,6 +80,7 @@ class FindLaneLines :
             print(f"Error: Failed to open video from {'sample1.avi'}")
             exit(1)
 
+        last_brake_analysis_time = time.time()
 
         while cap.isOpened():
             ret, frame = cap.read()
@@ -77,8 +89,9 @@ class FindLaneLines :
             if not ret:
                 print("--------Video Ended---------")
                 break
-
+            start_time_1 = time.time()
             start_time = time.perf_counter_ns()
+
 
             frame = self.calibration.undistort_const(frame)
 
@@ -89,10 +102,20 @@ class FindLaneLines :
             yolo_img, distance, front_car_boxes = self.yolo.detect_and_calculate_distance(frame)
             """ --------------------------- """
             time2 = time.perf_counter_ns()
-            if front_car_boxes is not None:
-                frame = self.tail.forward(frame, front_car_boxes)
-                # cv2.imshow("tail_img", tail_img)
 
+
+            current_time = time.time()
+            if current_time - last_brake_analysis_time >= brake_analysis_interval:
+
+                if front_car_boxes is not None:
+                    frame = self.tail.forward(frame, front_car_boxes)
+                    # cv2.imshow("tail_img", tail_img)
+
+                last_brake_analysis_time = current_time
+
+            elapsed_time = time.time() - start_time_1
+            if elapsed_time < video_frame_interval:
+                time.sleep(video_frame_interval - elapsed_time)
 
             lane_img, road_info = self.forward(lane_img)
             time3 = time.perf_counter_ns()
