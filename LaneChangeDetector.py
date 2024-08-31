@@ -28,19 +28,20 @@ class LaneChangeDetector:
         if front_boxes:
             largest_box, largest_confidence = get_largest_box(front_boxes, new_confidences)
 
-
+        lane_change_detected = []
         for box in largest_box:
             x, y, w, h = box
-            centroid_x = x + w // 2
-
+            centroid_x = x + (w / 2)
+            
+            print(centroid_x, left_line, right_line)
+            
             # 좌우 차선과 차량의 위치 비교
             if left_line is not None and right_line is not None:
-                lane_center = (left_line + right_line) // 2
-                if centroid_x < lane_center:  # 차량이 왼쪽으로 이동
-                    lane_change_detected = 'LEFT'
-                elif centroid_x > lane_center:  # 차량이 오른쪽으로 이동
-                    lane_change_detected = 'RIGHT'
-                else : False
+
+                if centroid_x - 0.45 * w < left_line:  # 차량이 왼쪽으로 이동
+                    lane_change_detected = 0
+                elif centroid_x + 0.45 * w > right_line:  # 차량이 오른쪽으로 이동
+                    lane_change_detected = 1
 
         return lane_change_detected, largest_box, lane_img
 
@@ -57,10 +58,10 @@ if __name__ == "__main__":
         lane_change, largest_box, lane_img = detector.detect_lane_change(frame)
 
         # 차선 변경 여부 텍스트 출력
-        if lane_change == 'LEFT' :
+        if lane_change == 0 :
             cv2.putText(lane_img, "Changing to left Lane", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 
                         1, (0, 0, 255), 2, cv2.LINE_AA)
-        elif lane_change == 'RIGHT' :
+        elif lane_change == 1 :
             cv2.putText(lane_img, "Changing to right Lane", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 
                         1, (0, 255, 0), 2, cv2.LINE_AA)
 
