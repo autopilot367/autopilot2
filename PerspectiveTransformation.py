@@ -12,14 +12,19 @@ class PerspectiveTransformation:
     """
     def __init__(self):
         """Init PerspectiveTransformation."""
-        self.src = np.float32([(220, 230),
-                               (400, 230),
-                               (640, 360-5),
-                               (0, 360-5)])
-        self.dst = np.float32([(0, 0),
-                               (640, 0),
-                               (640, 360),
-                               (0, 360)])
+        # self.src = np.float32([(220, 230),
+        #                        (400, 230),
+        #                        (640, 360-5),
+        #                        (0, 360-5)])
+        # self.dst = np.float32([(0, 0),
+        #                        (640, 0),
+        #                        (640, 360),
+        #                        (0, 360)])
+
+        # self.src = np.float32([(270, 270), (640 - 270 ,270), (640 - 140 ,355), (140,355)]) # test_7
+        self.src = np.float32([(250, 280), (390, 280), (640, 360), (0, 360)])
+        self.dst = np.float32([(0, 0), (640, 0), (640, 360), (0, 360)])
+        # self.dst = np.float32([(640 * 1/4, 0), (640 * 3/4, 0), (640 * 3/4, 360), (640 * 1/4, 360)])
         self.M = cv2.getPerspectiveTransform(self.src, self.dst)
         self.M_inv = cv2.getPerspectiveTransform(self.dst, self.src)
 

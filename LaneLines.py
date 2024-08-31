@@ -47,6 +47,7 @@ class LaneLines:
         Parameters:
             img (np.array): A binary image
         """
+        img[:180,:] = 0
         self.img = img
         self.window_height = np.int32(img.shape[0]//self.nwindows)
         self.nonzero = img.nonzero()
@@ -63,8 +64,8 @@ class LaneLines:
             Image (np.array): An RGB image containing lane lines pixels and other details
         """
         self.extract_features(img)
-        img, road_info = self.fit_poly(img)
-        return img, road_info
+        img, road_info, left_fitx, right_fitx, ploty = self.fit_poly(img)
+        return img, road_info, left_fitx, right_fitx, ploty
 
     def pixels_in_window(self, center, margin, height, img):
         """ Return all pixel that in a specific window
@@ -154,7 +155,7 @@ class LaneLines:
 
         leftx, lefty, rightx, righty, out_img = self.find_lane_pixels(img)
         if leftx is None:
-            return out_img, None
+            return out_img, None, None, None, None
         if len(lefty) > 1000:
             self.left_fit = np.polyfit(lefty, leftx, 2)
         if len(righty) > 1000:
@@ -231,6 +232,10 @@ class LaneLines:
         lane_width = right_startx - left_startx
 
         center_car = 720 / 2 + 12
+
+        if lane_width == 0:
+            return out_img, None, None, None, None
+
         pix_deviation = round((center_lane - center_car) / (lane_width/2), 6)
         deviation = round((3.5)*pix_deviation / lane_width, 2)
 
@@ -247,17 +252,20 @@ class LaneLines:
             steering_angle = 0
         else:
             wheelbase = 2700 #mm
-            steering_ratio = 20
-            adjusted_radius = radius_of_curvature - deviation
-            
-            # 조향각 계산
-            steering_angle_rad = math.atan(wheelbase / adjusted_radius)
-            steering_angle_deg = math.degrees(steering_angle_rad)
-            
-            # 조향비 적용
-            steering_angle = round(steering_angle_deg * steering_ratio, 2)
+            steering_ratio = 20000
+            # adjusted_radius = radius_of_curvature - deviation
+            adjusted_radius = deviation
+            if deviation == 0:
+                steering_angle = 0
+            else:
+                # 조향각 계산
+                steering_angle_rad = math.atan(wheelbase / adjusted_radius)
+                steering_angle_deg = math.degrees(steering_angle_rad)
+
+                # 조향비 적용
+                steering_angle = round(steering_angle_deg * steering_ratio, 2)
 
         road_info = [radius_of_curvature, road_info, deviation_state, steering_angle, deviation]
         print(road_info)
-        return out_img2, road_info
+        return out_img2, road_info, left_fitx, right_fitx, ploty
         

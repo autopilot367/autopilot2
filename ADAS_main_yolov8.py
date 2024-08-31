@@ -16,6 +16,7 @@ from Yolo_v8 import *
 from Preprocessing import *
 from Notice import *
 from BrakeDetector import *
+from LaneChangeDetector_yolov8 import *
 import time
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
@@ -43,6 +44,7 @@ class FindLaneLines :
         self.yolo = YOLOv8CarDetector('yolov8n.pt')
         self.notice = Notice()
         self.tail = KalmanBrakeDetector()
+        self.lane_change_detector = LaneChangeDetector()
 
 
 
@@ -52,19 +54,19 @@ class FindLaneLines :
         cv2.imshow("out_img",out_img)
         time1 = time.perf_counter_ns()
         img = self.transform.forward(img)
-        cv2.imshow("self.transform.forward(img)", img)
-        # print(f"self.transform.forward(img): {self.transform.forward(img)}")
+        M_inv = self.transform.M_inv
         time2 = time.perf_counter_ns()
+        # cv2.imshow("self.transform.forward(img)", img)
         img = self.thresholding.forward(img)
-        # print(f"self.thresholding.forward(img):{self.thresholding.forward(img).shape}")
+        # cv2.imshow("self.thresholding.forward(img)", img)
         time3 = time.perf_counter_ns()
-        img, road_info = self.lanelines.forward(img)
+        img, road_info, left_line, right_line, y = self.lanelines.forward(img)
         time4 = time.perf_counter_ns()
         img = self.transform.backward(img)
         time5 = time.perf_counter_ns()
         out_img = cv2.addWeighted(out_img, 1, img, 0.6, 0)
         # print(f"time1: {check_time(time1, time2)}ms, time2: {check_time(time2, time3)}ms, time3: {check_time(time3, time4)}ms, time4: {check_time(time4, time5)}ms")
-        return out_img, road_info
+        return out_img, road_info, left_line, right_line, M_inv, y
 
     def process_image(self, img_path):
         cap = cv2.VideoCapture(img_path)
@@ -117,7 +119,20 @@ class FindLaneLines :
             if elapsed_time < video_frame_interval:
                 time.sleep(video_frame_interval - elapsed_time)
 
-            lane_img, road_info = self.forward(lane_img)
+            lane_img, road_info, left_line, right_line, M_inv, y = self.forward(lane_img)
+            if left_line is not None:
+                lane_change = self.lane_change_detector.detect_lane_change(front_car_boxes, left_line, right_line, M_inv, y)
+                # 차선 변경 여부 텍스트 출력
+                if lane_change == 0:
+                    cv2.putText(yolo_img, "Changing to left Lane", (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
+                                1, (0, 0, 255), 2, cv2.LINE_AA)
+                elif lane_change == 1:
+                    cv2.putText(yolo_img, "Changing to right Lane", (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
+                                1, (0, 255, 0), 2, cv2.LINE_AA)
+                else:
+                    pass
+
+
             time3 = time.perf_counter_ns()
             result = cv2.addWeighted(lane_img, 0.5, yolo_img, 0.5, 0)
             # 프레임 종료 시간 기록
@@ -133,7 +148,7 @@ class FindLaneLines :
                 result = self.notice.combine(result, road_info[3])
             # 차간 거리 경고
             if distance:
-                if distance < 10:  # 임의로 설정한 값, 탑승 중인 차량의 속력 추가 필요
+                if distance < 20:  # 임의로 설정한 값, 탑승 중인 차량의 속력 추가 필요
                     result = self.notice.red_sign(result)
 
             cv2.putText(result, f"Frame time: {frame_time_ms:.2f} ms", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
@@ -145,7 +160,9 @@ class FindLaneLines :
                 break
 
 def main():
-    img_path = "test_1.mp4"
+    # img_path = "test_7.mp4" # 조향, 차선유지 등 전반적인 기능
+    # img_path = "test_8.mp4" # 후미등으로 앞 차선 변경하는 정도만
+    img_path = "test_11.mp4" # 차선책
 
     findLaneLines = FindLaneLines()
     findLaneLines.process_image(img_path)
