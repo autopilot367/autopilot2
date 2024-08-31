@@ -47,7 +47,6 @@ class LaneLines:
         Parameters:
             img (np.array): A binary image
         """
-        img[:180,:] = 0
         self.img = img
         self.window_height = np.int32(img.shape[0]//self.nwindows)
         self.nonzero = img.nonzero()

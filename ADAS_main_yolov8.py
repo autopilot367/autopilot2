@@ -160,9 +160,9 @@ class FindLaneLines :
                 break
 
 def main():
-    # img_path = "test_7.mp4" # 조향, 차선유지 등 전반적인 기능
+    img_path = "test_7.mp4" # 조향, 차선유지 등 전반적인 기능
     # img_path = "test_8.mp4" # 후미등으로 앞 차선 변경하는 정도만
-    img_path = "test_11.mp4" # 차선책
+    # img_path = "test_11.mp4" # 차선책
 
     findLaneLines = FindLaneLines()
     findLaneLines.process_image(img_path)
