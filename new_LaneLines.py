@@ -177,7 +177,7 @@ class new_LaneLines:
                 self.left_fit_hist = np.delete(self.left_fit_hist, 0, 0)
                 self.right_fit_hist = np.delete(self.right_fit_hist, 0, 0)
 
-        return left_fitx, right_fitx, ploty
+        return left_fitx, right_fitx, ploty, left_fit, right_fit
 
     def measure_curvature_meters(self, img, left_fitx, right_fitx, ploty):
         # Define conversions in x and y from pixels space to meters
@@ -266,8 +266,8 @@ class new_LaneLines:
     def forward(self, img):
         # img[:100, :] = 0
         img[:,550:] = 0
-        left_fitx, right_fitx, ploty = self.lane_finding_pipeline(img)
+        left_fitx, right_fitx, ploty, left_fit, right_fit = self.lane_finding_pipeline(img)
         road_info = self.road_info(img, left_fitx, right_fitx, ploty)
         img = self.draw_poly_lines(img, left_fitx, right_fitx, ploty)
-        return img, road_info, left_fitx, right_fitx, ploty
+        return img, road_info, left_fitx, right_fitx, ploty, left_fit, right_fit
 

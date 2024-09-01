@@ -23,12 +23,12 @@ class YOLOv8CarDetector:
     #
     #     return annotated_frame
 
-    def detect_and_calculate_distance(self, frame, focal_length=1000, real_car_width=2.0):
+    def detect_and_calculate_distance(self, frame, boxes, focal_length=1000, real_car_width=2.0):
         # YOLOv8 모델을 사용하여 프레임에서 객체 탐지
-        results = self.model(frame)
+        # results = self.model(frame)
 
         # 탐지된 객체들에 대한 정보를 가져옴
-        boxes = results[0].boxes
+        # boxes = results[0].boxes
 
         if len(boxes) == 0:
             return frame, None  # 탐지된 객체가 없을 경우 원본 프레임 반환

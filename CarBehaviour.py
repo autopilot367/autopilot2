@@ -14,6 +14,7 @@ def CarBehaviour(img1,img2):
     if len(bbox_img1) == 0 or len(bbox_img2) == 0:
         print("bbox error... skipping")
         return None, None, None
+    print("bbox_detected...")
     x, y, w, h =  bbox_img1[0][0], bbox_img1[0][1], bbox_img1[0][2],bbox_img1[0][3]
     right_light_img1 = img1[y:y + h, x:x + w]
     x, y, w, h = bbox_img1[1][0], bbox_img1[1][1], bbox_img1[1][2], bbox_img1[1][3]
@@ -39,8 +40,8 @@ def CarBehaviour(img1,img2):
     img2_Y_l, img2_Cr_l, img2_Cb_l = cv2.split(img2_yCrCb_l)
 
     # 빨간색 성분(Cr) 이 200보다 큰 부분을 255, 아닌부분 0 반환
-    ret, thresh1_r = cv2.threshold(img1_Cr_r, 200, 255, cv2.THRESH_BINARY)
-    ret, thresh1_l = cv2.threshold(img1_Cr_l, 200, 255, cv2.THRESH_BINARY)
+    ret, thresh1_r = cv2.threshold(img1_Cr_r, 140, 255, cv2.THRESH_BINARY) #test_7_2
+    ret, thresh1_l = cv2.threshold(img1_Cr_l, 140, 255, cv2.THRESH_BINARY) #test_7_2
 
     ret2, thresh2_r = cv2.threshold(img2_Cr_r, 200, 255, cv2.THRESH_BINARY)
     ret, thresh2_l = cv2.threshold(img2_Cr_l, 200, 255, cv2.THRESH_BINARY)

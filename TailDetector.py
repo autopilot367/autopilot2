@@ -107,7 +107,7 @@ def TailDetector(img):
     car_img_rgb = img.copy()
 
     img_yCrCb = cv2.cvtColor(img, cv2.COLOR_BGR2YCrCb)
-
+    cv2.imshow('b', img_yCrCb)
     threshold_img = GetThresholdImg(img_yCrCb)
 
     morpho_img = MorphologicalOperations(threshold_img)
