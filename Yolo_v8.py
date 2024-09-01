@@ -73,7 +73,7 @@ class YOLOv8CarDetector:
             color = (255, 255, 255)
 
             # 차량 바운딩 박스 그리기
-            # cv2.rectangle(frame, (sx, sy), (sx + bw, sy + bh), color, 2)
+            cv2.rectangle(frame, (sx, sy), (sx + bw, sy + bh), color, 2)
 
             # 거리 계산
             distance = (real_car_width * focal_length) / bw

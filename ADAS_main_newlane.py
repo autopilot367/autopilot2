@@ -98,7 +98,7 @@ class FindLaneLines :
         cap = cv2.VideoCapture(img_path)
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # 코덱 설정 (예: 'mp4v', 'XVID', 'MJPG')
         frame_width, frame_height = 640, 360  # 리사이즈된 해상도
-        out = cv2.VideoWriter('test_11_results.mp4', fourcc, 20.0, (frame_width, frame_height))
+        out = cv2.VideoWriter('test_12_results.mp4', fourcc, 20.0, (frame_width, frame_height))
         video_fps = cap.get(cv2.CAP_PROP_FPS)
         video_frame_interval = 1 / video_fps
 
@@ -156,14 +156,14 @@ class FindLaneLines :
                 lane_change = self.lane_change_detector.detect_lane_change(front_car_boxes, left_line, right_line, M_inv, y, left_fit, right_fit)
                 self.lane_change = lane_change
                 # 차선 변경 여부 텍스트 출력
-                if lane_change == 0:
-                    cv2.putText(yolo_img, "Changing to left Lane", (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
-                                1, (0, 0, 255), 2, cv2.LINE_AA)
-                elif lane_change == 1:
-                    cv2.putText(yolo_img, "Changing to right Lane", (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
-                                1, (0, 255, 0), 2, cv2.LINE_AA)
-                else:
-                    pass
+                # if lane_change == 0:
+                #     cv2.putText(yolo_img, "Changing to left Lane", (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
+                #                 1, (0, 0, 255), 2, cv2.LINE_AA)
+                # elif lane_change == 1:
+                #     cv2.putText(yolo_img, "Changing to right Lane", (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
+                #                 1, (0, 255, 0), 2, cv2.LINE_AA)
+                # else:
+                #     pass
 
 
             time3 = time.perf_counter_ns()
@@ -218,7 +218,8 @@ def main():
     # img_path = "test_7.mp4" # 조향, 차선유지 등 전반적인 기능
     # img_path = "test_7_2.mp4" # 후미등 점멸하는 영상
     # img_path = "test_8.mp4" # 후미등으로 앞 차선 변경하는 정도만
-    img_path = "test_11.mp4" # 차선책
+    # img_path = "test_11.mp4" # 차선책
+    img_path = "test_12.mp4"  # 차선책
 
     findLaneLines = FindLaneLines()
     findLaneLines.process_image(img_path)

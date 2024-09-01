@@ -43,9 +43,9 @@ class LaneChangeDetector:
         # 좌우 차선과 차량의 위치 비교
         if left_line is not None and right_line is not None:
 
-            if centroid_x - 0.5 * w < left_x:  # 차량이 왼쪽으로 이동
+            if centroid_x - 2 * w < left_x:  # 차량이 왼쪽으로 이동
                 lane_change_detected = 0
-            elif centroid_x + 0.5 * w > right_x:  # 차량이 오른쪽으로 이동
+            elif centroid_x + 1.4 * w > right_x:  # 차량이 오른쪽으로 이동
                 lane_change_detected = 1
         print(f"lane_change_detected: {lane_change_detected}")
         return lane_change_detected

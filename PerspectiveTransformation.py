@@ -28,9 +28,15 @@ class PerspectiveTransformation:
         # self.dst = np.float32([(self.offset, 0), (640 - self.offset, 0), (640 - self.offset, 360), (self.offset, 360)])
 
         """test_11"""
+        # self.offset = 100
+        # self.src = np.float32([(285, 286), (368, 289), (451, 358), (170, 358)])
+        # self.dst = np.float32([(self.offset, 0), (640 - self.offset, 0), (640 - self.offset, 360), (self.offset, 360)])
+
+        """test_12"""
         self.offset = 100
-        self.src = np.float32([(285, 286), (368, 289), (451, 358), (170, 358)])
+        self.src = np.float32([(288, 245), (391, 244), (533, 353), (100, 353)])
         self.dst = np.float32([(self.offset, 0), (640 - self.offset, 0), (640 - self.offset, 360), (self.offset, 360)])
+
 
         self.M = cv2.getPerspectiveTransform(self.src, self.dst)
         self.M_inv = cv2.getPerspectiveTransform(self.dst, self.src)

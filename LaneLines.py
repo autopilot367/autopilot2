@@ -63,6 +63,7 @@ class LaneLines:
         Returns:
             Image (np.array): An RGB image containing lane lines pixels and other details
         """
+        img[:,int(640*2/4):int(640*3/4)] = 0
         self.extract_features(img)
         img, road_info, left_fitx, right_fitx, ploty = self.fit_poly(img)
         return img, road_info, left_fitx, right_fitx, ploty, self.left_fit, self.right_fit
@@ -89,7 +90,7 @@ class LaneLines:
         # print(condx.shape)
         # print(condy.shape)
         cv2.rectangle(img, topleft, bottomright, (255, 0, 0), 2)
-        # cv2.imshow("sliding windows", img)
+        cv2.imshow("sliding windows", img)
         return self.nonzerox[condx & condy], self.nonzeroy[condx & condy]
 
     def find_lane_pixels(self, img):

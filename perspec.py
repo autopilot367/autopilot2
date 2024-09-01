@@ -1,13 +1,13 @@
 import cv2
 
 # 비디오 파일 경로
-video_path = 'test_7.mp4'
+video_path = 'test_12.mp4'
 
 # 비디오 캡처 객체 생성
 cap = cv2.VideoCapture(video_path)
 
 # 프레임 인덱스 설정
-frame_index = 300
+frame_index = 10
 current_frame = 0
 
 # 비디오가 열렸는지 확인
