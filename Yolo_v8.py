@@ -70,19 +70,19 @@ class YOLOv8CarDetector:
         # 가장 큰 박스가 있는 경우에만 그리기
         if largest_vehicle_box is not None:
             sx, sy, bw, bh = largest_vehicle_box
-            color = (100, 100, 255)
+            color = (255, 255, 255)
 
             # 차량 바운딩 박스 그리기
-            cv2.rectangle(frame, (sx, sy), (sx + bw, sy + bh), color, 2)
+            # cv2.rectangle(frame, (sx, sy), (sx + bw, sy + bh), color, 2)
 
             # 거리 계산
             distance = (real_car_width * focal_length) / bw
             distance_text = f"Distance: {distance:.2f} meters"
 
             # 거리를 프레임에 표시
-            cv2.putText(frame, distance_text, (sx, sy - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+            # cv2.putText(frame, distance_text, (sx, sy - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
-            return frame, distance, largest_vehicle_box
+            return frame, distance, largest_vehicle_box, distance_text
 
         return frame, None, None
 

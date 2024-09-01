@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import math
+from random import randint
 
 def hist(img):
     bottom_half = img[img.shape[0]//2:, :]
@@ -64,7 +65,7 @@ class LaneLines:
         """
         self.extract_features(img)
         img, road_info, left_fitx, right_fitx, ploty = self.fit_poly(img)
-        return img, road_info, left_fitx, right_fitx, ploty
+        return img, road_info, left_fitx, right_fitx, ploty, self.left_fit, self.right_fit
 
     def pixels_in_window(self, center, margin, height, img):
         """ Return all pixel that in a specific window
@@ -230,13 +231,13 @@ class LaneLines:
         center_lane = (right_startx + left_startx) / 2
         lane_width = right_startx - left_startx
 
-        center_car = 720 / 2 + 12
+        center_car = 720 / 2 + 10
 
         if lane_width == 0:
             return out_img, None, None, None, None
 
         pix_deviation = round((center_lane - center_car) / (lane_width/2), 6)
-        deviation = round((3.5)*pix_deviation / lane_width, 2)
+        deviation = (3.5)*pix_deviation / lane_width
 
         if center_lane > center_car :
             deviation_state = f'Left {str(abs(deviation))}m'
@@ -251,18 +252,20 @@ class LaneLines:
             steering_angle = 0
         else:
             wheelbase = 2700 #mm
-            steering_ratio = 20000
+            steering_ratio = 20
             # adjusted_radius = radius_of_curvature - deviation
             adjusted_radius = deviation
             if deviation == 0:
                 steering_angle = 0
             else:
                 # 조향각 계산
-                steering_angle_rad = math.atan(wheelbase / adjusted_radius)
+                # steering_angle_rad = math.atan(wheelbase / adjusted_radius)
+                steering_angle_rad = -deviation
                 steering_angle_deg = math.degrees(steering_angle_rad)
 
                 # 조향비 적용
                 steering_angle = round(steering_angle_deg * steering_ratio, 2)
+                steering_angle = randint(-5, 6)
 
         road_info = [radius_of_curvature, road_info, deviation_state, steering_angle, deviation]
         print(road_info)

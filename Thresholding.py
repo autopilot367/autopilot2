@@ -85,7 +85,7 @@ class Thresholding:
         # sat_thresh_min = 150  # 채도 값의 하한선을 더 높여 불필요한 영역 필터링
         # sat_thresh_max = 255
         #
-        # kernel = np.ones((9, 9), np.uint8)  # 커널 사이즈를 9x9로 키워 노이즈 제거 강화
+        # kernel = np.ones((7, 7), np.uint8)  # 커널 사이즈를 9x9로 키워 노이즈 제거 강화
         #
         # # Transform image to gray scale
         # gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -115,6 +115,6 @@ class Thresholding:
         # binary_2 = cv2.bitwise_or(hue_binary, sat_binary)
         # binary = cv2.bitwise_or(binary_1, binary_2)
         # binary_morphed = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
-        # binary_display = binary_1 * 255
+        # binary_display = binary_morphed * 255
         # cv2.imshow("binary", binary_display)
         # return binary_display
