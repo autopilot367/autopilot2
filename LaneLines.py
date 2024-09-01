@@ -38,9 +38,9 @@ class LaneLines:
         self.curvature = None
         self.deviation = None
 
-        self.nwindows = 12
-        self.margin = 20
-        self.minpix = 50
+        self.nwindows = 15
+        self.margin = 30
+        self.minpix = 20
 
     def extract_features(self, img):
         """ Extract features from a binary image
@@ -89,7 +89,7 @@ class LaneLines:
         # print(condx.shape)
         # print(condy.shape)
         cv2.rectangle(img, topleft, bottomright, (255, 0, 0), 2)
-        cv2.imshow("sliding windows", img)
+        # cv2.imshow("sliding windows", img)
         return self.nonzerox[condx & condy], self.nonzeroy[condx & condy]
 
     def find_lane_pixels(self, img):
@@ -156,9 +156,9 @@ class LaneLines:
         leftx, lefty, rightx, righty, out_img = self.find_lane_pixels(img)
         if leftx is None:
             return out_img, None, None, None, None
-        if len(lefty) > 1000:
+        if len(lefty) > 500:
             self.left_fit = np.polyfit(lefty, leftx, 2)
-        if len(righty) > 1000:
+        if len(righty) > 500:
             self.right_fit = np.polyfit(righty, rightx, 2)
 
         # Generate x and y values for plotting

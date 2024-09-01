@@ -6,6 +6,7 @@ Functions :
     Object Detection by Yolo
     ...
 """
+import cv2
 
 from new_LaneLines import *
 from Yolo_v8 import *
@@ -45,6 +46,7 @@ class FindLaneLines :
 
         self.lane_change = 2
         self.cnt = 0
+        self.braking = False
 
     def remove_car_boxes(self, img, boxes):
         # results = self.model.predict(img, device=device)
@@ -69,7 +71,7 @@ class FindLaneLines :
         out_img = np.copy(img)
         out_img2 = np.copy(img)
         # print(f"out_img: {out_img}")
-        cv2.imshow("out_img",out_img)
+        # cv2.imshow("out_img",out_img)
         time1 = time.perf_counter_ns()
 
         img_rm_car = self.remove_car_boxes(out_img2, boxes)
@@ -77,7 +79,7 @@ class FindLaneLines :
         gray_rm_car = cv2.cvtColor(img_rm_car, cv2.COLOR_BGR2GRAY)
         img = self.thresholding.forward(img)
         # img = cv2.bitwise_and(gray_rm_car, img)
-        cv2.imshow("img2", img)
+        # cv2.imshow("img2", img)
         time2 = time.perf_counter_ns()
         # cv2.imshow("self.transform.forward(img)", img)
         img = self.transform.forward(img)
@@ -90,10 +92,13 @@ class FindLaneLines :
         time5 = time.perf_counter_ns()
         out_img = cv2.addWeighted(out_img, 1, img, 0.6, 0)
         # print(f"time1: {check_time(time1, time2)}ms, time2: {check_time(time2, time3)}ms, time3: {check_time(time3, time4)}ms, time4: {check_time(time4, time5)}ms")
-        return out_img, road_info, left_line, right_line, M_inv, y, left_fit, right_fit
+        return img, road_info, left_line, right_line, M_inv, y, left_fit, right_fit
 
     def process_image(self, img_path):
         cap = cv2.VideoCapture(img_path)
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # 코덱 설정 (예: 'mp4v', 'XVID', 'MJPG')
+        frame_width, frame_height = 640, 360  # 리사이즈된 해상도
+        out = cv2.VideoWriter('test_11_results.mp4', fourcc, 20.0, (frame_width, frame_height))
         video_fps = cap.get(cv2.CAP_PROP_FPS)
         video_frame_interval = 1 / video_fps
 
@@ -137,7 +142,7 @@ class FindLaneLines :
             # if current_time - last_brake_analysis_time >= brake_analysis_interval:
 
             if front_car_boxes is not None:
-                frame = self.tail.forward(frame, front_car_boxes)
+                self.braking = self.tail.forward(frame, front_car_boxes)
                 # cv2.imshow("tail_img", tail_img)
 
             # last_brake_analysis_time = current_time
@@ -162,7 +167,7 @@ class FindLaneLines :
 
 
             time3 = time.perf_counter_ns()
-            result = cv2.addWeighted(lane_img, 0.5, yolo_img, 0.5, 0)
+            result = cv2.addWeighted(lane_img, 0.5, yolo_img, 1, 0)
             # 프레임 종료 시간 기록
             end_time = time.perf_counter_ns()
             # 프레임 당 소요 시간 계산
@@ -178,6 +183,8 @@ class FindLaneLines :
 
             # 우선 순위: 차간 거리 > 차선 이탈 > 차선 변경
             # 차간 거리 경고
+            if self.braking:
+                result = self.notice.sign(result)
 
             if distance < 20:
                 result = self.notice.red_sign(result)
@@ -188,19 +195,24 @@ class FindLaneLines :
                         result = self.notice.blue_sign(result, self.lane_change)
 
                     # 차선 변경 경고
-                    elif (self.cnt < 5) & (abs(road_info[4]) > 0.0024):
+                    elif abs(road_info[4]) > 0.0026:
                         result = self.notice.green_sign(result, road_info[4])
                         self.cnt += 1
                     else:
                         self.cnt = 0
 
-            cv2.putText(result, f"Frame time: {frame_time_ms:.2f} ms", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                        (255, 255, 255), 2)
-            cv2.putText(result, distance_text, (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+            result = self.notice.shadow(result)
+            cv2.putText(result, f"Frame time: {frame_time_ms:.2f} ms", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
+                        (255, 255, 255), 1, lineType=cv2.LINE_AA)
+            cv2.putText(result, distance_text, (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 1, lineType=cv2.LINE_AA)
             cv2.imshow("result", result)
             print(f"time1: {check_time(time1, time2)}ms, time2: {check_time(time2, time3)}ms")
+            out.write(result)
+
             if cv2.waitKey(10) == 27:
                 break
+
+
 
 def main():
     # img_path = "test_7.mp4" # 조향, 차선유지 등 전반적인 기능
@@ -210,6 +222,7 @@ def main():
 
     findLaneLines = FindLaneLines()
     findLaneLines.process_image(img_path)
+
 
 if __name__ == "__main__":
     main()

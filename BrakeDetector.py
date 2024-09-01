@@ -70,9 +70,9 @@ class KalmanBrakeDetector:
     def forward(self, frame, front_car_boxes):
         roi_frame = self.roi_for_tail_detect(frame, front_car_boxes)
         braking = self.detect_status_change(roi_frame)
-        if braking == True:
-            cv2.putText(frame, "Braking", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-        return frame
+        # if braking == True:
+        #     cv2.putText(frame, "Braking", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        return braking
 # # TailDetect_main에서 KalmanBrakeDetector를 사용하는 코드
 # kalman_brake_detector = KalmanBrakeDetector()
 # # 동영상 파일 열기

@@ -58,8 +58,30 @@ class Notice:
 
         return combined_frame
 
+    def shadow(self, img):
+        warning = cv2.imread("shadowingbox.png", cv2.IMREAD_UNCHANGED)
+        warning = cv2.resize(warning, (640, 360), interpolation=cv2.INTER_LINEAR)
+
+        result = self.overlay_image(img, warning, (0, 0))
+
+        # cv2.putText(result, "Braking", (250, 320), cv2.FONT_HERSHEY_DUPLEX, 1, (255, 255, 255), 1,
+        #             lineType=cv2.LINE_AA)
+
+        return result
+
+    def sign(self, img):
+        warning = cv2.imread("sign.png", cv2.IMREAD_UNCHANGED)
+        warning = cv2.resize(warning, (640, 360), interpolation=cv2.INTER_LINEAR)
+
+        result = self.overlay_image(img, warning, (0, 0))
+
+        cv2.putText(result, "Braking", (250, 320), cv2.FONT_HERSHEY_DUPLEX, 1, (255, 255, 255), 1,
+                    lineType=cv2.LINE_AA)
+
+        return result
+
     def red_sign(self, img):
-        warning = cv2.imread("warning_red.png", cv2.IMREAD_UNCHANGED)
+        warning = cv2.imread("warning_red_sign.png", cv2.IMREAD_UNCHANGED)
         warning = cv2.resize(warning, (640, 360), interpolation=cv2.INTER_LINEAR)
 
         result = self.overlay_image(img, warning, (0, 0))
@@ -70,7 +92,7 @@ class Notice:
         return result
 
     def green_sign(self, img, deviation):
-        if deviation < 0 :
+        if deviation > 0 :
             warning1 = cv2.imread("warning_org_left.png", cv2.IMREAD_UNCHANGED)
             warning1 = cv2.resize(warning1, (640, 360), interpolation=cv2.INTER_LINEAR)
             result = self.overlay_image(img, warning1, (0, 0))

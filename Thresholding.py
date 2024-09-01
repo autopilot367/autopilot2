@@ -47,7 +47,7 @@ class Thresholding:
 
         """test_7.mp4"""
         h, s, v = cv2.split(hsv)
-        v_gaussian = cv2.adaptiveThreshold(v, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 127, -27) # test_7
+        v_gaussian = cv2.adaptiveThreshold(v, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 127, -21) # test_7
         # mask = v_gaussian
         # return mask
 

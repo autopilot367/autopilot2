@@ -40,11 +40,11 @@ def CarBehaviour(img1,img2):
     img2_Y_l, img2_Cr_l, img2_Cb_l = cv2.split(img2_yCrCb_l)
 
     # 빨간색 성분(Cr) 이 200보다 큰 부분을 255, 아닌부분 0 반환
-    ret, thresh1_r = cv2.threshold(img1_Cr_r, 140, 255, cv2.THRESH_BINARY) #test_7_2
-    ret, thresh1_l = cv2.threshold(img1_Cr_l, 140, 255, cv2.THRESH_BINARY) #test_7_2
+    ret, thresh1_r = cv2.threshold(img1_Cr_r, 160, 255, cv2.THRESH_BINARY) #test_7_2
+    ret, thresh1_l = cv2.threshold(img1_Cr_l, 160, 255, cv2.THRESH_BINARY) #test_7_2
 
-    ret2, thresh2_r = cv2.threshold(img2_Cr_r, 200, 255, cv2.THRESH_BINARY)
-    ret, thresh2_l = cv2.threshold(img2_Cr_l, 200, 255, cv2.THRESH_BINARY)
+    ret2, thresh2_r = cv2.threshold(img2_Cr_r, 160, 255, cv2.THRESH_BINARY)
+    ret, thresh2_l = cv2.threshold(img2_Cr_l, 160, 255, cv2.THRESH_BINARY)
 
     non1_r = cv2.countNonZero(thresh1_r)
     non1_l = cv2.countNonZero(thresh1_l)

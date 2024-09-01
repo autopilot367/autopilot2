@@ -54,7 +54,7 @@ def SymmetryTest(img, n_labels, labels, stats, centroids, test_str):
 
                 light_pairs.append([i, j])
 
-    cv2.imshow(f"Image:{test_str}", labeled_image)
+    # cv2.imshow(f"Image:{test_str}", labeled_image)
 
     return light_pairs
 
@@ -64,8 +64,8 @@ def GetThresholdImg(img):
     car_img_Cr = img[:, :, 1]
     car_img_Cb = img[:, :, 2]
 
-    block_size = 11
-    c_value = 7
+    block_size = 9
+    c_value = 3
     th_Y = cv2.adaptiveThreshold(car_img_Y, 150, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, block_size, c_value)
     th_Cr = cv2.adaptiveThreshold(car_img_Cr, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, block_size, c_value)
 
